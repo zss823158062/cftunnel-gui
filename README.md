@@ -1,93 +1,95 @@
-# cftunnel-gui
+# Cloudflare Tunnel Launcher (Tauri Edition)
 
-> A zero-config Windows GUI launcher for Cloudflare Tunnel — one-click HTTPS for localhost.
+> 基于 **Tauri 2.0 + Vue 3 + TypeScript + Rust** 构建的高性能、极速零黑窗 Cloudflare Tunnel 桌面客户端。
 
-[![Python](https://img.shields.io/badge/Python-3.10%2B-blue.svg)](https://www.python.org/)
+[![Tauri](https://img.shields.io/badge/Tauri-2.0-blue.svg)](https://tauri.app/)
+[![Vue](https://img.shields.io/badge/Vue-3.5-emerald.svg)](https://vuejs.org/)
+[![Rust](https://img.shields.io/badge/Rust-1.80%2B-orange.svg)](https://www.rust-lang.org/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Platform](https://img.shields.io/badge/Platform-Windows-lightgrey.svg)]()
 
-基于 Cloudflare Tunnel 的免费 HTTPS 内网穿透 GUI 启动器。零配置、零黑窗、零 C 盘污染，一键把本地端口暴露到公网 HTTPS。
+基于 Cloudflare Tunnel 的免费 HTTPS 内网穿透 GUI 启动器。零环境依赖（无需 Python 运行库）、秒级启动、零黑窗、完全便携，一键把本地端口安全暴露到公网 HTTPS。
 
-## 特性
+---
 
-- 🪟 **零黑窗口**：所有 cloudflared 输出集中在 GUI 日志区
-- ⚡ **日志不卡顿**：子线程异步读取，环形缓冲 2000 行
-- 🧭 **内置初始化向导**：login / create / route dns 三步在 GUI 里完成，无需命令行
-- 📦 **完全可移植**：整个目录可丢到任意盘符/U 盘，所有数据跟随程序
-- 🎯 **精确状态指示**：按 `connIndex` 跟踪每条隧道，状态灯不漂移
-- 🔐 **敏感凭证隔离**：全部落在 `data/`，`.gitignore` 已排除
+## 🌟 核心特性
 
-## 截图
+- 🚀 **原生极速架构**：基于 Tauri 2.0 与 Rust 构建底层进程调度管道，启动极快，内存占用小（仅约 30MB）。
+- 🪟 **零黑窗口 & 实时管道流**：底层捕获 `cloudflared` 的 stdout/stderr 异步无缝重定向，彩色高亮渲染终端日志，支持环形缓冲与自动滚动。
+- 🧭 **智能初始化向导**：
+  - ① **Login**：点击后拉起系统默认浏览器进行 Cloudflare 授权，自动检测证书并归档至 `data/`。
+  - ② **创建 Tunnel**：根据设定的 Tunnel 名称一键创建，自动提取并绑定 UUID 凭证。
+  - ③ **绑定 DNS**：逐个为配置的子域名添加 CNAME 记录 指向当前 Tunnel。
+  - ⚡ **一键执行全部**：智能检测当前缺失的步骤并顺序执行。
+- 🎯 **多域名/端口映射与精准连接跟踪**：
+  - 支持添加、编辑、删除、上下移动多条 `hostname -> localhost:port` 映射配置。
+  - 自动维护 `connIndex`（0..3）连接集合，实时反馈连接状态灯与连接数（如 `4/4`）。
+- 📦 **完全可移植**：整个应用及 `data/` 目录可置于任意目录或 U 盘运行，配置与凭证全部保存在 `data/` 目录中。
+- 🛡️ **优雅进程守护**：关闭窗口或点击停止时，自动向子进程发送终止信号并清理残留进程，避免后台孤儿进程泄露。
 
-（可在此处添加 GUI 截图）
+---
 
-## 环境要求
+## 📁 目录结构
 
-- Windows 10/11
-- Python 3.10+（自带 tkinter，零第三方依赖）
-- Cloudflare 账号 + 一个已托管在 Cloudflare 的域名
+```
+cf_tunnel/
+├── cloudflared.exe         # Cloudflare 官方客户端
+├── data/                   # 本地运行数据与凭证（已被 .gitignore 排除）
+│   ├── cert.pem            # 登录凭据
+│   ├── <UUID>.json         # Tunnel 密钥文件
+│   ├── tunnel-id.txt       # Tunnel UUID 缓存
+│   ├── gui-settings.json   # 用户表单配置持久化
+│   └── config.runtime.yml  # 运行时生成的配置文件
+├── src/                    # Vue 3 + TypeScript 前端界面
+│   ├── App.vue             # 主桌面窗口组件（运行监控与初始化向导）
+│   ├── types.ts            # 前端数据接口定义
+│   └── main.ts             # 前端入口
+├── src-tauri/              # Rust 后端
+│   ├── src/
+│   │   ├── commands.rs     # Tauri Invoke 业务指令集
+│   │   ├── state.rs        # 进程与配置状态模型
+│   │   ├── lib.rs          # 插件与窗口生命周期管理
+│   │   └── main.rs         # 入口函数
+│   ├── Cargo.toml          # Rust 依赖声明
+│   └── tauri.conf.json     # Tauri 2 应用配置
+├── run.bat                 # 双击直接启动（已编译则秒开，未编译则自动拉起开发模式）
+├── run-debug.bat           # 带控制台日志的开发模式启动
+└── package.json
+```
 
-## 快速开始
+---
 
-### 1. 克隆仓库
+## 🛠️ 开发与构建
+
+### 1. 安装前端依赖
 
 ```bash
-git clone https://github.com/zss823158062/cftunnel-gui.git
-cd cftunnel-gui
+pnpm install
 ```
 
-### 2. 下载 cloudflared
+### 2. 本地开发与调试
 
-本仓库不包含 `cloudflared.exe`（62MB，通过 .gitignore 排除）。自行下载到项目根目录：
-
+```bash
+pnpm tauri dev
 ```
-https://github.com/cloudflare/cloudflared/releases/latest
+或双击运行 `run-debug.bat`。
+
+### 3. 构建 Release 正式安装包
+
+```bash
+pnpm tauri build
 ```
+编译产物将生成在 `src-tauri/target/release/`：
+- 单文件便携版可执行文件：`cftunnel-gui.exe`
+- 安装包：`bundle/msi/` 与 `bundle/nsis/`
 
-选择 `cloudflared-windows-amd64.exe`，重命名为 `cloudflared.exe`。
+---
 
-### 3. 启动 GUI
+## 💡 代理冲突说明
 
-双击 `run.bat`。
-
-### 4. 首次初始化
-
-在「**初始化向导**」标签页：
-
-1. 填写 **Tunnel 名称**、**子域名**、**本地端口** → 点「保存参数」
-2. 点「**一键执行全部**」：
-   - ① Login（弹浏览器授权）
-   - ② 创建 Tunnel
-   - ③ 绑定 DNS
-
-### 5. 日常启动
-
-切到「**运行**」标签页 → 点「**启动 Tunnel**」。绿灯亮起时访问你的子域名即可。
-
-## 目录结构
-
-```
-cftunnel-gui/
-├── cloudflared.exe         # 自行下载（不入库）
-├── tunnel_gui.py           # GUI 主程序
-├── run.bat                 # 无黑窗口启动
-├── run-debug.bat           # 带控制台启动（排错用）
-├── LICENSE
-├── README.md
-└── data/                   # 运行数据（不入库）
-    ├── cert.pem            # 登录凭证
-    ├── <UUID>.json         # Tunnel 凭证
-    ├── tunnel-id.txt       # UUID 缓存
-    ├── gui-settings.json   # 表单参数持久化
-    └── config.runtime.yml  # 运行时生成的配置
-```
-
-## 代理冲突（重要）
-
-如使用 **Clash / v2rayN** 等带 TUN 模式的代理工具，必须放行 cloudflared，否则会被 fake-ip 劫持：
+如使用 **Clash / v2rayN** 等带 TUN 模式的代理工具，必须放行 cloudflared，否则可能被 fake-ip 劫持导致状态灯一直为黄色：
 
 **Clash Verge 规则片段**：
-
 ```yaml
 - PROCESS-NAME,cloudflared.exe,DIRECT
 - DOMAIN-SUFFIX,argotunnel.com,DIRECT
@@ -95,43 +97,8 @@ cftunnel-gui/
 - DOMAIN-SUFFIX,cftunnel.com,DIRECT
 ```
 
-加完后需**重启 Clash 内核**或重新激活 profile。验证：
+---
 
-```bash
-nslookup region1.v2.argotunnel.com
-```
-
-返回 `198.41.x.x` 开头即生效。若仍为 `198.18.x.x` 说明规则未加载。
-
-## 故障排查
-
-| 现象 | 原因 / 解决 |
-|------|------|
-| GUI 打不开 | 用 `run-debug.bat` 查看 Python 异常 |
-| 状态灯一直黄 | 代理 fake-ip 劫持，参见上方 |
-| 访问返回 502 | 本地端口服务未启动 / 被防火墙拦截 |
-| DNS 绑定报 1003 | 子域名已有冲突记录，到 Cloudflare 后台删除 |
-| 域名含下划线报错 | DNS 规范不允许，改用连字符 |
-
-## 技术栈
-
-- **GUI**：tkinter（Python 标准库）
-- **后端**：Cloudflare 官方 `cloudflared`
-- **协议**：QUIC（优先）/ HTTP/2
-
-## 设计要点
-
-- `CREATE_NO_WINDOW` 启动子进程，无控制台窗口
-- 子线程读 stdout → Queue → GUI 80ms 轮询渲染
-- `CTRL_BREAK_EVENT` 优雅停止 cloudflared，4 秒超时兜底强杀
-- 按 `connIndex` 维护连接集合，避免状态计数漂移
-- `BASE_DIR = Path(__file__).parent`，路径完全相对
-
-## License
+## 📄 License
 
 [MIT](LICENSE) © 2026 zss823158062
-
-## 相关链接
-
-- [Cloudflare Tunnel 官方文档](https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/)
-- [cloudflared Releases](https://github.com/cloudflare/cloudflared/releases)

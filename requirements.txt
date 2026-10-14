@@ -1,2 +1,0 @@
-# Python >= 3.10
-# 零第三方依赖，tkinter 为 Python 标准库

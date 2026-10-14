@@ -1,6 +1,6 @@
 @echo off
 chcp 65001 >nul
 cd /d %~dp0
-echo [调试模式] 如 GUI 崩溃或不显示，此窗口会显示 Python 错误
-python tunnel_gui.py
+echo [开发/调试模式] 启动 Tauri + Vite 开发服务器与控制台输出...
+pnpm tauri dev
 pause
