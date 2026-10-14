@@ -395,9 +395,7 @@ onUnmounted(() => {
     <header class="app-header">
       <div class="brand">
         <div class="brand-logo">
-          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z" stroke="#f48120" fill="#f4812022" />
-          </svg>
+          <img src="/app-logo.png" width="30" height="30" alt="Cloudflare Tunnel Logo" style="border-radius: 6px;" />
         </div>
         <div class="brand-text">
           <h1 class="brand-title">Cloudflare Tunnel</h1>
